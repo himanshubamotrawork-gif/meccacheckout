@@ -1,0 +1,186 @@
+import React, { useState, useRef } from 'react';
+
+export default function ProductCarousel({ products = [] }) {
+  const scrollContainer = useRef(null);
+  const [wishlist, setWishlist] = useState(new Set());
+  const [loadedCount, setLoadedCount] = useState(6);
+  const itemsPerLoad = 6;
+
+  // Default products specifically tailored to your screenshots
+  const defaultProducts = [
+    { 
+      id: 1, 
+      brand: 'rhode', 
+      name: 'Glazing Milk Ceramide Facial...', 
+      price: 35.00, 
+      rating: 4, 
+      reviews: 400, 
+      trending: true, 
+      badge: 'MINI',
+      placeholderType: 'rectangle' // For the grey block placeholder
+    },
+    { 
+      id: 2, 
+      brand: 'rhode', 
+      name: 'Peptide Lip Boost Plumping ...', 
+      price: 40.00, 
+      rating: 5, 
+      reviews: 70,
+      placeholderType: 'pill' // For the grey pill placeholder
+    },
+    { 
+      id: 3, 
+      brand: 'rhode', 
+      name: 'Peptide Lip Tint Nourishing Glaze', 
+      price: 35.00, 
+      rating: 4, 
+      reviews: 452,
+      placeholderType: 'tube'
+    },
+    { 
+      id: 4, 
+      brand: 'Charlotte Tilbury', 
+      name: 'Airbrush Flawless Setting Spray', 
+      price: 56.00, 
+      rating: 5, 
+      reviews: 5315, 
+      badge: 'NATURAL FINISH',
+      trending: true,
+      placeholderType: 'bottle'
+    },
+    { 
+      id: 5, 
+      brand: 'MECCA COSMETICA', 
+      name: 'To Save Face SPF50+ Superscreen', 
+      price: 42.00, 
+      rating: 5, 
+      reviews: 2104,
+      placeholderType: 'rectangle'
+    }
+  ];
+
+  const allProducts = products.length > 0 ? products : defaultProducts;
+  const visibleProducts = allProducts.slice(0, loadedCount);
+
+  const toggleWishlist = (id) => {
+    const newWishlist = new Set(wishlist);
+    if (newWishlist.has(id)) {
+      newWishlist.delete(id);
+    } else {
+      newWishlist.add(id);
+    }
+    setWishlist(newWishlist);
+  };
+
+  const handleScroll = () => {
+    if (!scrollContainer.current) return;
+    
+    const { scrollLeft, scrollWidth, clientWidth } = scrollContainer.current;
+    const scrollPercentage = (scrollLeft + clientWidth) / scrollWidth;
+    
+    if (scrollPercentage > 0.8 && loadedCount < allProducts.length) {
+      setLoadedCount(prev => prev + itemsPerLoad);
+    }
+  };
+
+  return (
+    <div className="w-full bg-white py-4 font-sans">
+      <h2 className="text-[20px] font-normal tracking-wide text-gray-900 mb-5 px-4">
+        We have a feeling you'll love these...
+      </h2>
+      
+      <div 
+        ref={scrollContainer}
+        onScroll={handleScroll}
+        className="flex gap-4 overflow-x-auto pb-6 px-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden"
+        style={{ scrollBehavior: 'smooth', msOverflowStyle: 'none', scrollbarWidth: 'none' }}
+      >
+        {visibleProducts.map(product => (
+          <div 
+            key={product.id}
+            className="flex-shrink-0 w-[170px] snap-start flex flex-col"
+          >
+            {/* Image Container */}
+            <div className="relative bg-[#f9f9f9] h-[220px] mb-3 flex items-center justify-center group">
+              
+              {/* Badge (Top Left) */}
+              {product.badge && (
+                <div className="absolute top-2.5 left-2.5 border border-black bg-white px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider z-10">
+                  {product.badge}
+                </div>
+              )}
+
+              {/* Wishlist Button (Top Right) */}
+              <button
+                onClick={() => toggleWishlist(product.id)}
+                className="absolute top-2.5 right-2.5 p-1 z-10 transition-transform active:scale-90"
+                aria-label="Add to wishlist"
+              >
+                <svg 
+                  className="w-5 h-5" 
+                  viewBox="0 0 24 24" 
+                  fill={wishlist.has(product.id) ? "black" : "none"} 
+                  stroke="black" 
+                  strokeWidth="1.5"
+                >
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+              </button>
+
+              {/* Dynamic Image Placeholders matching screenshots */}
+              {product.image ? (
+                <img src={product.image} alt={product.name} className="max-w-[80%] max-h-[80%] object-contain mix-blend-multiply" />
+              ) : (
+                <>
+                  {product.placeholderType === 'rectangle' && <div className="w-12 h-20 bg-[#d9d9d9] rounded-md opacity-80"></div>}
+                  {product.placeholderType === 'pill' && <div className="w-9 h-24 bg-[#e0e0e0] rounded-full opacity-80"></div>}
+                  {product.placeholderType === 'tube' && <div className="w-8 h-24 bg-[#ff99b3] rounded-sm opacity-80"></div>}
+                  {product.placeholderType === 'bottle' && <div className="w-8 h-20 bg-[#f4d1b8] rounded-sm opacity-80"></div>}
+                </>
+              )}
+
+              {/* Add to Cart Button (Bottom Right) */}
+              <button 
+                className="absolute bottom-2.5 right-2.5 bg-white w-7 h-7 rounded-full flex items-center justify-center shadow-[0_2px_8px_rgba(0,0,0,0.12)] text-lg font-medium text-black z-10 transition-transform hover:scale-105"
+                aria-label="Add to bag"
+              >
+                +
+              </button>
+            </div>
+
+            {/* Product Info */}
+            <div className="flex flex-col flex-grow">
+              <h3 className="text-[13px] font-bold text-black mb-0.5 leading-tight">{product.brand}</h3>
+              <p className="text-[13.5px] text-gray-800 mb-1.5 leading-snug line-clamp-2">
+                {product.name}
+              </p>
+              
+              <div className="text-[14px] font-bold text-black mb-1.5">
+                ${product.price.toFixed(2)}
+              </div>
+
+              {/* Reviews */}
+              <div className="flex items-center gap-1 mb-1.5">
+                <div className="flex text-[10px] text-black tracking-tighter">
+                  {[...Array(5)].map((_, i) => (
+                    <span key={i} className={i < product.rating ? "text-black" : "text-gray-300"}>
+                      ★
+                    </span>
+                  ))}
+                </div>
+                <span className="text-[11px] text-gray-500 ml-0.5">({product.reviews})</span>
+              </div>
+
+              {/* Trending Tag */}
+              {product.trending && (
+                <div className="text-[10px] text-[#d6223e] font-bold uppercase tracking-widest mt-0.5">
+                  Trending Now
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
